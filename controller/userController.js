@@ -51,7 +51,6 @@ const register = async (req, res) => {
     try {
         let imageUrl = '';
         if (image) {
-            // Ensure you access the file correctly
             const uploadedImage = await cloudinary.uploader.upload(image.path, {
                 folder: "user",
                 crop: "scale"
@@ -77,8 +76,6 @@ const register = async (req, res) => {
             image: imageUrl
         });
         await userData.save();
-
-        // Create verification token (optional, based on your requirements)
         const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Send verification email with the random password
@@ -118,7 +115,7 @@ const login = async (req, res) => {
         if (!userData) {
             await new LoginActivity({
                 email,
-                role: "user",  // Assuming default role, you might want to adjust this logic
+                role: "user", 
                 success: false,
                 message: "User not found",
                 endpoint: req.originalUrl,
@@ -174,8 +171,6 @@ const login = async (req, res) => {
                 message: `Incorrect password. ${remainingAttempts} attempts remaining. After ${remainingAttempts === 0 ? "this" : "the next"} attempt, your account will be locked.`,
             });
         }
-
-        // Reset failed login attempts and lockUntil if login is successful
         userData.failedLoginAttempts = 0;
         userData.lockUntil = null;
         await userData.save();
@@ -277,7 +272,7 @@ const deleteLoginActivity = async (req, res) => {
 const updateProfile = async (req, res) => {
     const userId = req.params.id;
     const { firstName, lastName, email, password } = req.body;
-    const image = req.file; // Assuming image is sent as a file
+    const image = req.file; 
 
     try {
         const user = await User.findById(userId);
