@@ -372,9 +372,9 @@ const changePassword = async (req, res) => {
         const hashedNewPassword = await bcrypt.hash(newPassword, salt);
 
         // Update the user's password and password history
-        user.passwordHistory.push(user.password);  // Add the current password to history
-        if (user.passwordHistory.length > 5) {  // Limit password history to 5
-            user.passwordHistory.shift();  // Remove the oldest password
+        user.passwordHistory.push(user.password);  
+        if (user.passwordHistory.length > 5) {  
+            user.passwordHistory.shift();  
         }
         user.password = hashedNewPassword;
         await user.save();
@@ -392,6 +392,7 @@ const changePassword = async (req, res) => {
         });
     }
 };
+
 
 
 module.exports = {
