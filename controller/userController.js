@@ -320,6 +320,78 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    const { userId } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: "Please enter both current and new passwords."
+        });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        // Check if current password matches
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        // Check if the new password matches any in the password history
+        const isInHistory = await user.isPasswordInHistory(newPassword);
+        if (isInHistory) {
+            return res.status(400).json({
+                success: false,
+                message: "New password cannot be the same as any previously used password."
+            });
+        }
+
+        // Validate new password
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the user's password and password history
+        user.passwordHistory.push(user.password);  // Add the current password to history
+        if (user.passwordHistory.length > 5) {  // Limit password history to 5
+            user.passwordHistory.shift();  // Remove the oldest password
+        }
+        user.password = hashedNewPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            user,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.error(`Error while changing password: ${error}`);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
 
 
 module.exports = {
@@ -329,5 +401,6 @@ module.exports = {
     allUser,
     getLoginActivities,
     deleteLoginActivity,
-    updateProfile
+    updateProfile,
+    changePassword
 }

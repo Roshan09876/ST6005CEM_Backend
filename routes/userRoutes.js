@@ -8,6 +8,7 @@ router.put("/update/:id", userController.updateProfile);
 router.get("/allusers", userController.allUser);
 router.get("/logactivities", userController.getLoginActivities);
 router.delete("/logactivity/:id", userController.deleteLoginActivity);
+router.put("/change-password/:userId", userController.changePassword);
 
 module.exports = router
 
